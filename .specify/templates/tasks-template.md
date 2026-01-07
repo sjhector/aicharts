@@ -20,10 +20,10 @@ description: "Task list template for feature implementation"
 
 ## Path Conventions
 
-- **Single project**: `src/`, `tests/` at repository root
-- **Web app**: `backend/src/`, `frontend/src/`
-- **Mobile**: `api/src/`, `ios/src/` or `android/src/`
-- Paths shown below assume single project - adjust based on plan.md structure
+- **Next.js App Router**: `app/api/` for backend routes, `app/[feature]/` for pages, `app/components/` for UI
+- **Components**: `app/components/ui/` for shadcn/ui, `app/components/charts/` for ECharts wrappers
+- **Libraries**: `app/lib/` for utilities, types, API clients
+- Paths shown below assume Next.js App Router structure - adjust based on plan.md
 
 <!-- 
   ============================================================================
@@ -62,12 +62,12 @@ description: "Task list template for feature implementation"
 
 Examples of foundational tasks (adjust based on your project):
 
-- [ ] T004 Setup database schema and migrations framework
-- [ ] T005 [P] Implement authentication/authorization framework
-- [ ] T006 [P] Setup API routing and middleware structure
-- [ ] T007 Create base models/entities that all stories depend on
-- [ ] T008 Configure error handling and logging infrastructure
-- [ ] T009 Setup environment configuration management
+- [ ] T004 Install and configure shadcn/ui components (Button, Card, Dialog, etc.)
+- [ ] T005 [P] Setup ECharts integration and create base chart wrapper component
+- [ ] T006 [P] Configure API route structure and middleware (error handling, CORS if needed)
+- [ ] T007 Create TypeScript types for API contracts in app/lib/types.ts
+- [ ] T008 Setup API client utilities in app/lib/api.ts
+- [ ] T009 Configure error handling and loading state patterns
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -83,17 +83,18 @@ Examples of foundational tasks (adjust based on your project):
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T010 [P] [US1] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T011 [P] [US1] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T010 [P] [US1] API route test for [endpoint] in tests/unit/api/[name].test.ts
+- [ ] T011 [P] [US1] E2E test for [user journey] in tests/e2e/[name].spec.ts
 
 ### Implementation for User Story 1
 
-- [ ] T012 [P] [US1] Create [Entity1] model in src/models/[entity1].py
-- [ ] T013 [P] [US1] Create [Entity2] model in src/models/[entity2].py
-- [ ] T014 [US1] Implement [Service] in src/services/[service].py (depends on T012, T013)
-- [ ] T015 [US1] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T016 [US1] Add validation and error handling
-- [ ] T017 [US1] Add logging for user story 1 operations
+- [ ] T012 [P] [US1] Create API route in app/api/[feature]/route.ts with request/response types
+- [ ] T013 [P] [US1] Define TypeScript types for data models in app/lib/types.ts
+- [ ] T014 [US1] Implement API client function in app/lib/api.ts (depends on T012)
+- [ ] T015 [P] [US1] Create UI components using shadcn/ui in app/components/[feature]/
+- [ ] T016 [US1] Create page component in app/[feature]/page.tsx with API integration
+- [ ] T017 [US1] Add error handling, loading states, and accessibility attributes
+- [ ] T018 [P] [US1] Create ECharts chart component if needed in app/components/charts/
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -107,7 +108,7 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Tests for User Story 2 (OPTIONAL - only if tests requested) ⚠️
 
-- [ ] T018 [P] [US2] Contract test for [endpoint] in tests/contract/test_[name].py
+- [ ] T019 [P] [US2] API route test for [endpoint] in tests/unit/api/[name].test.ts
 - [ ] T019 [P] [US2] Integration test for [user journey] in tests/integration/test_[name].py
 
 ### Implementation for User Story 2

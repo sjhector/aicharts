@@ -17,21 +17,29 @@
   the iteration process.
 -->
 
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
-**Project Type**: [single/web/mobile - determines source structure]  
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Framework**: Next.js 16+ (App Router)
+**Language/Version**: TypeScript 5+
+**Runtime**: Node.js 20+
+**Primary Dependencies**: React, Tailwind CSS 4+, shadcn/ui, Apache ECharts
+**Storage**: [if applicable, e.g., PostgreSQL, MongoDB, Redis, or N/A]
+**Testing**: Vitest/Jest for unit tests, Playwright for E2E [or NEEDS CLARIFICATION]
+**Target Platform**: Web (modern browsers)
+**Project Type**: web (Next.js full-stack application)
+**Performance Goals**: [domain-specific, e.g., <3s initial load, <100ms chart rendering, or NEEDS CLARIFICATION]
+**Constraints**: [domain-specific, e.g., <500KB initial JS bundle, responsive design required, or NEEDS CLARIFICATION]
+**Scale/Scope**: [domain-specific, e.g., 10k concurrent users, 100+ chart types, or NEEDS CLARIFICATION]
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- [ ] API Routes Architecture: All backend functionality uses Next.js API Routes (`app/api/`)
+- [ ] Component Framework Standards: All UI uses Tailwind CSS + shadcn/ui components
+- [ ] Charting Library Standard: All charts use Apache ECharts (no alternative libraries)
+- [ ] TypeScript strict mode enabled
+- [ ] Clear API contracts defined with request/response types
+- [ ] Error handling and loading states implemented
+- [ ] Accessibility standards (WCAG 2.1 Level AA) met
 
 ## Project Structure
 
@@ -51,48 +59,36 @@ specs/[###-feature]/
 <!--
   ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
   for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
+  real paths (e.g., app/api/charts, app/dashboard). The delivered plan must
   not include Option labels.
 -->
 
 ```text
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
-src/
-├── models/
-├── services/
-├── cli/
-└── lib/
+# Next.js App Router Structure (DEFAULT for this project)
+app/
+├── api/              # Backend API Routes (ALL server logic goes here)
+│   └── [feature]/
+│       └── route.ts
+├── [feature]/        # Frontend pages
+│   ├── page.tsx
+│   └── layout.tsx
+├── components/       # Reusable UI components (shadcn/ui + custom)
+│   ├── ui/          # shadcn/ui components
+│   └── charts/      # ECharts wrapper components
+├── lib/             # Utilities, helpers, types, API clients
+│   ├── utils.ts
+│   ├── types.ts
+│   └── api.ts
+└── globals.css      # Tailwind CSS imports
 
-tests/
-├── contract/
-├── integration/
-└── unit/
+public/              # Static assets (images, fonts)
 
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
-
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
-
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+tests/               # Test files (if applicable)
+├── unit/
+└── e2e/
 ```
 
-**Structure Decision**: [Document the selected structure and reference the real
-directories captured above]
+**Structure Decision**: Next.js App Router with integrated frontend/backend. All server logic in `app/api/` routes, all UI in page components using shadcn/ui + Tailwind CSS, all charts using ECharts.
 
 ## Complexity Tracking
 
@@ -100,5 +96,5 @@ directories captured above]
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
+| [e.g., Using Chart.js instead of ECharts] | [specific technical requirement] | [why ECharts cannot fulfill the need] |
+| [e.g., CSS Modules instead of Tailwind] | [specific justification] | [why Tailwind + shadcn/ui insufficient] |

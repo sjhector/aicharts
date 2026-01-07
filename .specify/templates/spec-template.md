@@ -80,20 +80,30 @@
 <!--
   ACTION REQUIRED: The content in this section represents placeholders.
   Fill them out with the right functional requirements.
+  
+  CONSTITUTION REQUIREMENTS:
+  - All backend functionality MUST use Next.js API Routes (app/api/)
+  - All UI components MUST use Tailwind CSS + shadcn/ui
+  - All charts MUST use Apache ECharts
+  - TypeScript strict mode required
+  - API contracts must define request/response types
+  - Error handling and loading states required
+  - WCAG 2.1 Level AA accessibility required
 -->
 
 ### Functional Requirements
 
-- **FR-001**: System MUST [specific capability, e.g., "allow users to create accounts"]
-- **FR-002**: System MUST [specific capability, e.g., "validate email addresses"]  
-- **FR-003**: Users MUST be able to [key interaction, e.g., "reset their password"]
-- **FR-004**: System MUST [data requirement, e.g., "persist user preferences"]
-- **FR-005**: System MUST [behavior, e.g., "log all security events"]
+- **FR-001**: System MUST [specific capability, e.g., "provide a chart dashboard"]
+- **FR-002**: API Routes MUST [specific capability, e.g., "validate and sanitize chart data"]  
+- **FR-003**: Users MUST be able to [key interaction, e.g., "interact with charts (zoom, pan, tooltip)"]
+- **FR-004**: System MUST [data requirement, e.g., "support real-time chart updates"]
+- **FR-005**: UI MUST [behavior, e.g., "display loading states during data fetch"]
+- **FR-006**: Charts MUST [accessibility, e.g., "include ARIA labels and keyboard navigation"]
 
 *Example of marking unclear requirements:*
 
-- **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
-- **FR-007**: System MUST retain user data for [NEEDS CLARIFICATION: retention period not specified]
+- **FR-007**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
+- **FR-008**: Charts MUST support [NEEDS CLARIFICATION: which chart types - line, bar, scatter, etc.?]
 
 ### Key Entities *(include if feature involves data)*
 
@@ -109,7 +119,7 @@
 
 ### Measurable Outcomes
 
-- **SC-001**: [Measurable metric, e.g., "Users can complete account creation in under 2 minutes"]
-- **SC-002**: [Measurable metric, e.g., "System handles 1000 concurrent users without degradation"]
-- **SC-003**: [User satisfaction metric, e.g., "90% of users successfully complete primary task on first attempt"]
-- **SC-004**: [Business metric, e.g., "Reduce support tickets related to [X] by 50%"]
+- **SC-001**: [Measurable metric, e.g., "Charts render within 500ms for datasets up to 10,000 points"]
+- **SC-002**: [Measurable metric, e.g., "UI responds to user interactions within 100ms"]
+- **SC-003**: [User satisfaction metric, e.g., "90% of users successfully interact with charts on first attempt"]
+- **SC-004**: [Accessibility metric, e.g., "All interactive elements accessible via keyboard navigation"]
