@@ -263,6 +263,16 @@ If the user's prompt contains NO extractable data, return this JSON:
 
 The response must be parseable by JSON.parse() immediately.
 
+**IMPORTANT JSON RULES**:
+1. All property names must be in double quotes
+2. String values must be in double quotes
+3. Arrays must use square brackets: [1, 2, 3]
+4. Objects must use curly braces with proper syntax
+5. No trailing commas
+6. No single quotes - use double quotes only
+7. The "data" field in series MUST be an array: "data": [100, 150, 200]
+8. itemStyle must be a nested object: "itemStyle": { "color": "#5470c6" }
+
 ## Examples
 
 **Input**: "比较北京和上海的销售额：北京是120、130、150，上海是100、140、160"

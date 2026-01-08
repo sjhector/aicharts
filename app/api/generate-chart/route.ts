@@ -10,8 +10,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import type { EChartsOption } from 'echarts';
-import type { APIRequest, APIResponse, APIErrorResponse, APISuccessResponse } from '@/app/lib/types';
-import { getChartGenerationPrompt } from '@/app/lib/llm-prompts';
+import type { APIRequest, APIResponse, APIErrorResponse, APISuccessResponse } from '../../lib/types';
+import { getChartGenerationPrompt } from '../../lib/llm-prompts';
 import { 
   validateEChartsConfig, 
   validateDataPointLimit,
@@ -19,7 +19,7 @@ import {
   extractChartType,
   formatEChartsConfig,
   createExtractedDataFromConfig
-} from '@/app/lib/echarts-config';
+} from '../../lib/echarts-config';
 
 // Initialize OpenAI client with DashScope configuration
 const client = new OpenAI({
@@ -44,6 +44,8 @@ export async function POST(request: NextRequest) {
   try {
     // Parse and validate request body
     const body = await request.json() as APIRequest;
+    
+    console.log('[API] Received request:', JSON.stringify(body));
     
     // Validate prompt
     if (!body.prompt || typeof body.prompt !== 'string') {
@@ -87,7 +89,8 @@ export async function POST(request: NextRequest) {
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        response_format: { type: 'json_object' },
+        // Note: DashScope qwen-max may not fully support response_format
+        // Relying on system prompt to ensure JSON output
         max_tokens: CONFIG.maxTokens,
         temperature: CONFIG.temperature
       });
@@ -117,6 +120,7 @@ export async function POST(request: NextRequest) {
     let parsedResponse: any;
     try {
       parsedResponse = JSON.parse(responseContent);
+      console.log('[API] Parsed LLM response:', JSON.stringify(parsedResponse, null, 2));
     } catch (parseError) {
       console.error('Failed to parse LLM response:', responseContent);
       const errorResponse: APIErrorResponse = {
@@ -130,6 +134,7 @@ export async function POST(request: NextRequest) {
 
     // Check for "no_data" error from LLM
     if (parsedResponse.error === 'no_data') {
+      console.log('[API] LLM returned no_data error');
       const errorResponse: APIErrorResponse = {
         success: false,
         error: 'no_data',
@@ -140,6 +145,7 @@ export async function POST(request: NextRequest) {
 
     // Validate ECharts configuration
     const validation = validateEChartsConfig(parsedResponse);
+    console.log('[API] Validation result:', validation);
     if (!validation.isValid) {
       const errorResponse: APIErrorResponse = {
         success: false,
