@@ -5,6 +5,16 @@
 **Status**: Draft  
 **Input**: User description: "我要创建一个叫做AI Charts的官网。该官网首页是一个居中输入框，用户可以输入任意和数据相关的提示词，然后发送给AI后，网站的布局就会发生变化。输入框在最底部，上方变成一个显示图表的区域。LLM能够自动的提取这段提示词中的数据和文本，选择一个最佳的图表进行渲染。如果用户指定了某个图表类型，那么就使用用户指定的该图表类型进行渲染。"
 
+## Clarifications
+
+### Session 2026-01-08
+
+- Q: 3D图表的核心使用场景是什么？真3D空间数据展示 vs 伪3D视觉效果 vs 2D替代方案？ → A: 伪3D效果方案 - 使用阴影/渐变/透视增强2D图表，保持数据可读性和性能
+- Q: 3D视觉效果应该应用到哪些图表类型？仅柱状图+散点图 vs 柱状图+饼图 vs 全部类型？ → A: 实现3D柱状图和3D饼图 - 这两种是3D效果最常用且视觉效果最佳的组合
+- Q: 用户如何触发3D效果？关键词触发 vs 默认启用 vs 切换按钮 vs AI智能判断？ → A: 通过关键词触发 - 用户在提示词中包含"3D"、"立体"、"三维"等关键词来激活
+- Q: 3D图表的性能和数据限制？保持1000点 vs 限制500点 vs 限制300点 vs 动态限制？ → A: 保持1000数据点限制 - 3D图表与2D图表使用相同的数据点上限
+- Q: 3D视觉效果的具体参数？轻微3D(15°) vs 中等3D(30°) vs 强烈3D(45°) vs 用户可调？ → A: 使用中等强度3D效果 - 视角30°，柱体厚度20%，饼图厚度15%，平衡美观与可读性
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Basic Chart Generation from Natural Language (Priority: P1)
@@ -89,6 +99,24 @@ A user wants to download the generated chart as an image file to use in presenta
 
 ---
 
+### User Story 6 - 3D Visual Effects for Bar and Pie Charts (Priority: P2)
+
+A user wants to create visually enhanced charts with 3D effects (depth, shadows, perspective) for presentations or visual impact, while maintaining data readability.
+
+**Why this priority**: Provides visual enhancement for presentation and marketing materials. 3D effects make charts more engaging for non-technical audiences. This is an optional visual enhancement that doesn't affect core functionality.
+
+**Independent Test**: Can be tested by entering a prompt like "用3D柱状图展示销售数据: Q1 100, Q2 150, Q3 200" and verifying a bar chart with 3D visual effects (depth, shadows, perspective angle) is rendered.
+
+**Acceptance Scenarios**:
+
+1. **Given** I am entering a data prompt, **When** I include 3D keywords ("3D", "立体", "三维", "3d bar chart") in my text, **Then** the system renders the chart with 3D visual effects applied
+2. **Given** I have specified a 3D chart type, **When** the chart is rendered, **Then** it displays with appropriate 3D parameters: 30° viewing angle for bar charts, 15% thickness for pie charts, medium shadow intensity
+3. **Given** I request a 3D chart, **When** the chart type is bar or pie, **Then** the system applies 3D effects; for other chart types (line, scatter, area), the system uses standard 2D rendering
+4. **Given** I have generated a 3D chart, **When** I interact with it, **Then** all standard interactions (tooltips, zoom, pan) continue to work correctly
+5. **Given** I request a 3D chart with more than 1000 data points, **When** the system processes the request, **Then** it applies the same data point limits as 2D charts
+
+---
+
 ### Edge Cases
 
 - What happens when the user enters a prompt with no discernible numerical data? → **System must display an alert message prompting user to enter content with data**
@@ -99,6 +127,9 @@ A user wants to download the generated chart as an image file to use in presenta
 - How does the system handle special characters or malformed input in the prompt?
 - What happens when the AI service is unavailable or times out?
 - What happens when the user tries to download a chart before it's fully rendered?
+- What happens when the user requests 3D effects for unsupported chart types (line, scatter, area)? → **System should fall back to standard 2D rendering**
+- What happens when the user specifies both 2D and 3D keywords in the same prompt (e.g., "flat 3D bar chart")? → **3D keywords take precedence**
+- How does 3D rendering perform on low-end devices or older browsers? → **System uses hardware-accelerated CSS transforms and ECharts GPU rendering**
 
 ## Requirements *(mandatory)*
 
@@ -124,13 +155,19 @@ A user wants to download the generated chart as an image file to use in presenta
 - **FR-018**: System MUST handle prompts with time-series data (dates, months, years) and format axes appropriately
 - **FR-019**: API Route MUST return structured chart configuration (chart type, data series, labels, colors) to the frontend
 - **FR-020**: System operates as a stateless one-time application with no chart history or session persistence
+- **FR-021**: System MUST support 3D visual effects for bar charts and pie charts when user includes 3D keywords ("3D", "立体", "三维") in the prompt
+- **FR-022**: 3D bar charts MUST render with 30° viewing angle, 20% column depth, and medium shadow intensity (opacity 0.3)
+- **FR-023**: 3D pie charts MUST render with 15% thickness (based on radius), 25° tilt angle, and gradient highlights
+- **FR-024**: System MUST apply the same 1000 data point limit to both 2D and 3D charts
+- **FR-025**: When user requests 3D effects for unsupported chart types (line, scatter, area), system MUST render standard 2D chart without error
 
 ### Key Entities
 
-- **ChartPrompt**: User's natural language input containing data and visualization intent; attributes include raw text, language, timestamp, user session identifier
+- **ChartPrompt**: User's natural language input containing data and visualization intent; attributes include raw text, language, timestamp, user session identifier, 3D effect indicators (keywords like "3D", "立体", "三维")
 - **ExtractedData**: Structured data parsed from the prompt; attributes include data series (array of values), labels (array of strings), data types (numerical, categorical, temporal), series names
-- **ChartConfiguration**: Complete specification for rendering a chart; attributes include chart type (line, bar, pie, scatter, etc.), data series, axis labels, title, colors, interaction settings
-- **ChartType**: The visualization format; supported types include line chart, bar chart, pie chart, scatter plot, area chart, stacked bar, grouped bar (extensible list)
+- **ChartConfiguration**: Complete specification for rendering a chart; attributes include chart type (line, bar, pie, scatter, etc.), data series, axis labels, title, colors, interaction settings, visual mode (2D or 3D), 3D parameters (viewing angle, depth, shadow intensity)
+- **ChartType**: The visualization format; supported types include line chart, bar chart (2D/3D), pie chart (2D/3D), scatter plot, area chart, stacked bar, grouped bar (extensible list)
+- **VisualMode3D**: 3D rendering parameters; attributes include viewing angle (degrees), depth/thickness (percentage), shadow intensity (opacity 0-1), tilt angle (for pie charts)
 
 ## Success Criteria *(mandatory)*
 
@@ -148,15 +185,19 @@ A user wants to download the generated chart as an image file to use in presenta
 - **SC-010**: All interactive elements (input box, chart controls, download button) are accessible via keyboard navigation
 - **SC-011**: Users can successfully specify chart types in prompts with 95% accuracy when using supported keywords
 - **SC-012**: Data formatting displays numbers consistently and correctly across all chart types
+- **SC-013**: 3D charts render within 500ms for datasets up to 1000 data points on standard hardware
+- **SC-014**: AI successfully detects 3D keywords ("3D", "立体", "三维") with 95% accuracy when present in prompts
+- **SC-015**: 3D visual effects apply correctly to bar and pie charts while maintaining all interactive features (tooltips, zoom, pan)
 
 ## Assumptions *(optional)*
 
-- Users have modern web browsers with JavaScript enabled (Chrome 90+, Firefox 88+, Safari 14+, Edge 90+)
+- Users have modern web browsers with JavaScript enabled (Chrome 90+, Firefox 88+, Safari 14+, Edge 90+) and hardware acceleration support for 3D rendering
 - LLM service (e.g., OpenAI GPT, Claude, or similar) is available via API for natural language processing
 - Users will primarily enter prompts with structured data (numbers + labels) rather than requesting data retrieval from external sources
-- Initial version will focus on common chart types (line, bar, pie, scatter, area) with more specialized types added later
-- Prompts will typically contain between 2 and 1000 data points total (hard limit enforced)
+- Initial version will focus on common chart types (line, bar, pie, scatter, area) with 3D visual effects available for bar and pie charts
+- Prompts will typically contain between 2 and 1000 data points total (hard limit enforced for both 2D and 3D charts)
 - Users understand basic data visualization concepts (what a bar chart vs line chart represents)
+- 3D effects use pseudo-3D rendering (perspective, shadows, depth) rather than true 3D space with Z-axis data
 - Application is designed as a one-time use tool - no session persistence, history tracking, or user accounts
 - Each chart generation is independent with no state carried between sessions
 - Users will download charts if they want to preserve them - no server-side storage provided
@@ -168,9 +209,10 @@ A user wants to download the generated chart as an image file to use in presenta
 - Natural language prompt processing for chart generation
 - Support for Chinese and English language prompts
 - Basic chart types: line, bar, pie, scatter, area charts
-- Multi-series data visualization (up to 1000 total data points)
-- Interactive chart features (tooltips, zoom, pan)
-- Chart download/export as image files (PNG/SVG)
+- 3D visual effects for bar charts and pie charts (pseudo-3D with perspective, shadows, depth)
+- Multi-series data visualization (up to 1000 total data points for both 2D and 3D charts)
+- Interactive chart features (tooltips, zoom, pan) working with both 2D and 3D charts
+- Chart download/export as image files (PNG/SVG) including 3D rendered charts
 - Data formatting for consistent number display
 - Alert dialog when no extractable data is found in user input
 - Responsive layout transformation (centered input → bottom input + chart area)
@@ -184,7 +226,10 @@ A user wants to download the generated chart as an image file to use in presenta
 - Chart history or session persistence between page reloads
 - Real-time collaborative editing
 - Data source integrations (uploading CSV, connecting to databases)
-- Advanced chart types (3D charts, map visualizations, network graphs)
+- True 3D charts with Z-axis data (spatial coordinates, volumetric data)
+- 3D effects for line charts, scatter plots, and area charts (only bar and pie charts supported initially)
+- Advanced chart types (map visualizations, network graphs, heatmaps, treemaps)
+- Interactive 3D rotation controls or adjustable viewing angles (fixed perspective angles used)
 - Interactive chart customization UI (colors, fonts, themes) beyond AI suggestions
 - Multiple charts on the same page
 - Chart editing after generation (regenerate from scratch instead)
