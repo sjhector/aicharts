@@ -41,14 +41,20 @@ const CONFIG = {
  * POST handler for chart generation
  */
 export async function POST(request: NextRequest) {
+  const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const startTime = Date.now();
+  
   try {
     // Parse and validate request body
     const body = await request.json() as APIRequest;
     
-    console.log('[API] Received request:', JSON.stringify(body));
+    console.log(`[${requestId}] Request received at ${new Date().toISOString()}`);
+    console.log(`[${requestId}] Prompt length: ${body.prompt?.length || 0} chars`);
+    console.log(`[${requestId}] Request body:`, JSON.stringify(body));
     
     // Validate prompt
     if (!body.prompt || typeof body.prompt !== 'string') {
+      console.warn(`[${requestId}] Validation failed: Missing or invalid prompt type`);
       const errorResponse: APIErrorResponse = {
         success: false,
         error: 'invalid_request',
@@ -59,6 +65,7 @@ export async function POST(request: NextRequest) {
 
     // Check prompt length
     if (body.prompt.length > CONFIG.maxPromptLength) {
+      console.warn(`[${requestId}] Validation failed: Prompt length ${body.prompt.length} exceeds max ${CONFIG.maxPromptLength}`);
       const errorResponse: APIErrorResponse = {
         success: false,
         error: 'invalid_request',
@@ -70,6 +77,7 @@ export async function POST(request: NextRequest) {
     // Trim prompt
     const userPrompt = body.prompt.trim();
     if (userPrompt.length === 0) {
+      console.warn(`[${requestId}] Validation failed: Empty prompt after trimming`);
       const errorResponse: APIErrorResponse = {
         success: false,
         error: 'invalid_request',
@@ -82,7 +90,9 @@ export async function POST(request: NextRequest) {
     const systemPrompt = getChartGenerationPrompt();
     
     let completion;
+    const llmStartTime = Date.now();
     try {
+      console.log(`[${requestId}] Calling LLM API with model: ${CONFIG.model}`);
       completion = await client.chat.completions.create({
         model: CONFIG.model,
         messages: [
@@ -94,8 +104,17 @@ export async function POST(request: NextRequest) {
         max_tokens: CONFIG.maxTokens,
         temperature: CONFIG.temperature
       });
+      const llmDuration = Date.now() - llmStartTime;
+      console.log(`[${requestId}] LLM API responded in ${llmDuration}ms`);
+      console.log(`[${requestId}] Tokens used - prompt: ${completion.usage?.prompt_tokens}, completion: ${completion.usage?.completion_tokens}, total: ${completion.usage?.total_tokens}`);
     } catch (llmError) {
-      console.error('LLM API Error:', llmError);
+      const llmDuration = Date.now() - llmStartTime;
+      console.error(`[${requestId}] LLM API Error after ${llmDuration}ms:`, llmError);
+      console.error(`[${requestId}] Error details:`, {
+        name: llmError instanceof Error ? llmError.name : 'Unknown',
+        message: llmError instanceof Error ? llmError.message : 'Unknown error',
+        stack: llmError instanceof Error ? llmError.stack : undefined
+      });
       const errorResponse: APIErrorResponse = {
         success: false,
         error: 'server_error',
@@ -108,6 +127,7 @@ export async function POST(request: NextRequest) {
     // Extract response content
     const responseContent = completion.choices[0]?.message?.content;
     if (!responseContent) {
+      console.error(`[${requestId}] LLM returned empty response`);
       const errorResponse: APIErrorResponse = {
         success: false,
         error: 'server_error',
@@ -120,9 +140,11 @@ export async function POST(request: NextRequest) {
     let parsedResponse: any;
     try {
       parsedResponse = JSON.parse(responseContent);
-      console.log('[API] Parsed LLM response:', JSON.stringify(parsedResponse, null, 2));
+      console.log(`[${requestId}] Successfully parsed LLM response`);
+      console.log(`[${requestId}] Response structure:`, JSON.stringify(parsedResponse, null, 2));
     } catch (parseError) {
-      console.error('Failed to parse LLM response:', responseContent);
+      console.error(`[${requestId}] JSON parse error:`, parseError);
+      console.error(`[${requestId}] Raw LLM response:`, responseContent);
       const errorResponse: APIErrorResponse = {
         success: false,
         error: 'server_error',
@@ -134,7 +156,7 @@ export async function POST(request: NextRequest) {
 
     // Check for "no_data" error from LLM
     if (parsedResponse.error === 'no_data') {
-      console.log('[API] LLM returned no_data error');
+      console.log(`[${requestId}] LLM returned no_data error`);
       const errorResponse: APIErrorResponse = {
         success: false,
         error: 'no_data',
@@ -145,8 +167,9 @@ export async function POST(request: NextRequest) {
 
     // Validate ECharts configuration
     const validation = validateEChartsConfig(parsedResponse);
-    console.log('[API] Validation result:', validation);
+    console.log(`[${requestId}] Validation result:`, validation);
     if (!validation.isValid) {
+      console.warn(`[${requestId}] ECharts validation failed:`, validation.errors);
       const errorResponse: APIErrorResponse = {
         success: false,
         error: 'validation_failed',
@@ -161,6 +184,7 @@ export async function POST(request: NextRequest) {
     // Validate data point limit
     const pointLimitValidation = validateDataPointLimit(echartsConfig, CONFIG.maxDataPoints);
     if (!pointLimitValidation.isValid) {
+      console.warn(`[${requestId}] Data point limit exceeded:`, pointLimitValidation.errors);
       const errorResponse: APIErrorResponse = {
         success: false,
         error: 'validation_failed',
@@ -180,6 +204,10 @@ export async function POST(request: NextRequest) {
     const seriesCount = extractedData?.series.length || 0;
 
     // Prepare success response
+    const totalDuration = Date.now() - startTime;
+    console.log(`[${requestId}] Request completed successfully in ${totalDuration}ms`);
+    console.log(`[${requestId}] Chart metadata:`, { chartType, dataPointCount, seriesCount });
+    
     const successResponse: APISuccessResponse = {
       success: true,
       config: formattedConfig,
@@ -196,7 +224,14 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     // Handle unexpected errors
-    console.error('Unexpected error in generate-chart API:', error);
+    const totalDuration = Date.now() - startTime;
+    console.error(`[${requestId}] Unexpected error after ${totalDuration}ms:`, error);
+    console.error(`[${requestId}] Error stack:`, error instanceof Error ? error.stack : 'No stack trace');
+    console.error(`[${requestId}] Request context:`, {
+      timestamp: new Date().toISOString(),
+      duration: totalDuration,
+      errorType: error instanceof Error ? error.constructor.name : typeof error
+    });
     
     const errorResponse: APIErrorResponse = {
       success: false,
