@@ -175,10 +175,10 @@ description: "Implementation tasks for AI Charts Homepage"
 - [ ] T054 [P] Add ARIA labels to chart components in app/components/chart-display.tsx for screen readers
 - [ ] T055 [P] Optimize ECharts bundle size in app/components/chart-display.tsx - use tree shaking, lazy loading
 - [ ] T056 Add responsive design handling in app/page.tsx - ensure layout works on mobile and tablet
-- [ ] T057 Test and optimize layout transition timing in app/page.tsx - ensure <300ms performance
+- [X] T057 Test and optimize layout transition timing in app/page.tsx - ensure <300ms performance
 - [ ] T058 Add metadata and SEO tags in app/layout.tsx (title, description, Open Graph)
 - [ ] T059 Create .env.example file with placeholder for DASHSCOPE_API_KEY
-- [ ] T060 Update README.md with setup instructions and feature overview
+- [X] T060 Update README.md with setup instructions and feature overview
 
 ---
 

@@ -73,8 +73,8 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
-        <div className={`text-center transition-all duration-500 ${layoutState === 'split' ? 'mb-6' : 'mb-12'}`}>
-          <h1 className={`font-bold text-gray-800 transition-all duration-500 ${layoutState === 'split' ? 'text-3xl' : 'text-5xl mb-4'}`}>
+        <div className={`text-center transition-all duration-300 ease-out ${layoutState === 'split' ? 'mb-6' : 'mb-12'}`}>
+          <h1 className={`font-bold text-gray-800 transition-all duration-300 ease-out ${layoutState === 'split' ? 'text-3xl' : 'text-5xl mb-4'}`}>
             AI Charts
           </h1>
           {layoutState === 'centered' && (
@@ -85,13 +85,13 @@ export default function Home() {
         </div>
 
         {/* Layout Container with Transition */}
-        <div className={`transition-all duration-500 ${
+        <div className={`transition-all duration-300 ease-out will-change-[transform,opacity] ${
           layoutState === 'centered' 
             ? 'flex items-center justify-center min-h-[60vh]' 
             : 'grid grid-cols-1 lg:grid-cols-2 gap-6'
         }`}>
           {/* Input Section */}
-          <div className={`transition-all duration-500 ${
+          <div className={`transition-all duration-300 ease-out will-change-[max-width] ${
             layoutState === 'centered' 
               ? 'w-full max-w-2xl' 
               : 'w-full'
@@ -182,7 +182,7 @@ export default function Home() {
 
           {/* Chart Display Section */}
           {(isLoading || chartConfig || layoutState === 'split') && (
-            <div className={`transition-all duration-500 ${
+            <div className={`transition-all duration-300 ease-out delay-75 will-change-[opacity,transform] ${
               layoutState === 'centered' ? 'hidden' : 'block'
             }`}>
               {isLoading ? (
