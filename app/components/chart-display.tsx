@@ -32,6 +32,7 @@ export function ChartDisplay({
   showDownload = true
 }: ChartDisplayProps) {
   const [ReactECharts, setReactECharts] = useState<any>(null);
+  const [chartInstance, setChartInstance] = useState<any>(null);
   const chartRef = useRef<any>(null);
 
   // Dynamically import echarts-for-react for code splitting
@@ -91,7 +92,7 @@ export function ChartDisplay({
         {/* Download button */}
         {showDownload && (
           <div className="flex justify-end p-4 border-b border-gray-100">
-            <ChartDownload chartInstance={chartRef.current} filename="ai-chart" />
+            <ChartDownload chartInstance={chartInstance} filename="ai-chart" />
           </div>
         )}
         
@@ -101,6 +102,7 @@ export function ChartDisplay({
             ref={(e: any) => {
               if (e) {
                 chartRef.current = e;
+                setChartInstance(e); // Update state when chart mounts
               }
             }}
             option={config}
