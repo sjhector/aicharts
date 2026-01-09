@@ -135,7 +135,28 @@ description: "Implementation tasks for AI Charts Homepage"
 
 ---
 
-## Phase 7: User Story 4 - Chart Interaction and Exploration (Priority: P3)
+## Phase 7: User Story 6 - 3D Visual Effects for Bar and Pie Charts (Priority: P2)
+
+**Goal**: Provide visual enhancement through 3D effects (depth, shadows, perspective) for presentations while maintaining data readability
+
+**Independent Test**: Enter "用3D柱状图展示销售数据: Q1 100, Q2 150, Q3 200" and verify a bar chart with 3D visual effects (depth, shadows, 30° perspective)
+
+### Implementation for User Story 6
+
+- [ ] T061 [P] [US6] Add VisualMode3D type definition in app/lib/types.ts with viewing angle, depth, shadow intensity attributes
+- [ ] T062 [P] [US6] Create 3D parameter application functions in app/lib/echarts-config.ts for bar charts (30° angle, 20% depth, 0.3 shadow opacity)
+- [ ] T063 [P] [US6] Create 3D parameter application functions in app/lib/echarts-config.ts for pie charts (15% thickness, 25° tilt, gradient highlights)
+- [ ] T064 [US6] Update LLM system prompt in app/lib/llm-prompts.ts to detect 3D keywords ("3D", "立体", "三维", "3d") and return visualMode field
+- [ ] T065 [US6] Add 3D keyword regex fallback detection in app/api/generate-chart/route.ts as backup to LLM detection
+- [ ] T066 [US6] Integrate 3D parameter application in app/api/generate-chart/route.ts when visualMode is "3D" and chartType is bar or pie
+- [ ] T067 [US6] Add 3D effect validation in app/api/generate-chart/route.ts to ensure unsupported chart types (line, scatter, area) fall back to 2D
+- [ ] T068 [US6] Update chart display component in app/components/chart-display.tsx to enable hardware-accelerated rendering for 3D charts
+
+**Checkpoint**: Users can now create 3D bar and pie charts with visual effects for presentations
+
+---
+
+## Phase 8: User Story 4 - Chart Interaction and Exploration (Priority: P3)
 
 **Goal**: Enable interactive exploration through tooltips, zooming, and panning
 
@@ -154,7 +175,7 @@ description: "Implementation tasks for AI Charts Homepage"
 
 ---
 
-## Phase 8: Data Formatting and Validation (Cross-Cutting)
+## Phase 9: Data Formatting and Validation (Cross-Cutting)
 
 **Purpose**: Implement data formatting and 1000-point limit enforcement
 
@@ -166,7 +187,7 @@ description: "Implementation tasks for AI Charts Homepage"
 
 ---
 
-## Phase 9: Polish & Cross-Cutting Concerns
+## Phase 10: Polish & Cross-Cutting Concerns
 
 **Purpose**: Final touches, optimization, and production readiness
 
@@ -196,22 +217,25 @@ Phase 1 (Setup) → Phase 2 (Foundation) ──┐
                                            │
                                            ├─→ Phase 6 (US5: Download)
                                            │
-                                           └─→ Phase 7 (US4: Interactions)
+                                           ├─→ Phase 7 (US6: 3D Visual Effects)
+                                           │
+                                           └─→ Phase 8 (US4: Interactions)
                                            
-Phase 8 (Data Formatting) - Can run parallel to US2-US5
-Phase 9 (Polish) - After all user stories complete
+Phase 9 (Data Formatting) - Can run parallel to US2-US6
+Phase 10 (Polish) - After all user stories complete
 ```
 
 ### Critical Path
 
 1. **T001-T010**: Setup + Foundation (blocking)
 2. **T011-T025**: User Story 1 (MVP)
-3. **T026-T029**: User Story 2 (parallel to US3, US5)
-4. **T030-T034**: User Story 3 (parallel to US2, US5)
-5. **T035-T040**: User Story 5 (parallel to US2, US3)
-6. **T041-T046**: User Story 4
-7. **T047-T051**: Data Formatting
-8. **T052-T060**: Polish
+3. **T026-T029**: User Story 2 (parallel to US3, US5, US6)
+4. **T030-T034**: User Story 3 (parallel to US2, US5, US6)
+5. **T035-T040**: User Story 5 (parallel to US2, US3, US6)
+6. **T061-T068**: User Story 6 (parallel to US2, US3, US5)
+7. **T041-T046**: User Story 4
+8. **T047-T051**: Data Formatting
+9. **T052-T060**: Polish
 
 ### Parallel Execution Opportunities
 
@@ -220,7 +244,7 @@ Phase 9 (Polish) - After all user stories complete
 - Different files, no dependencies
 
 **After User Story 1 (T025 complete)**:
-- Can work on US2 (T026-T029), US3 (T030-T034), and US5 (T035-T040) in parallel
+- Can work on US2 (T026-T029), US3 (T030-T034), US5 (T035-T040), and US6 (T061-T068) in parallel
 - Each story modifies different aspects
 
 **During Polish**:
@@ -242,13 +266,14 @@ Phase 9 (Polish) - After all user stories complete
 - **Phase 4**: User Story 2 (T026-T029)
 - **Phase 5**: User Story 3 (T030-T034)
 - **Phase 6**: User Story 5 (T035-T040)
-- **Phase 8**: Full data formatting (T047, T050-T051)
+- **Phase 7**: User Story 6 (T061-T068)
+- **Phase 9**: Full data formatting (T047, T050-T051)
 
-**Deliverable**: Multi-series charts, chart type control, download functionality
+**Deliverable**: Multi-series charts, chart type control, download functionality, 3D visual effects
 
 ### Polish Scope (Week 3)
-- **Phase 7**: User Story 4 (T041-T046)
-- **Phase 9**: Polish (T052-T060)
+- **Phase 8**: User Story 4 (T041-T046)
+- **Phase 10**: Polish (T052-T060)
 
 **Deliverable**: Production-ready application with full interactivity and optimizations
 
@@ -256,18 +281,19 @@ Phase 9 (Polish) - After all user stories complete
 
 ## Task Statistics
 
-- **Total Tasks**: 60
+- **Total Tasks**: 68
 - **Setup**: 5 tasks (T001-T005)
 - **Foundation**: 5 tasks (T006-T010)
 - **User Story 1 (P1)**: 15 tasks (T011-T025) - MVP
 - **User Story 2 (P2)**: 4 tasks (T026-T029)
 - **User Story 3 (P2)**: 5 tasks (T030-T034)
 - **User Story 5 (P2)**: 6 tasks (T035-T040)
+- **User Story 6 (P2)**: 8 tasks (T061-T068)
 - **User Story 4 (P3)**: 6 tasks (T041-T046)
 - **Data Formatting**: 5 tasks (T047-T051)
 - **Polish**: 9 tasks (T052-T060)
 
-**Parallel Opportunities**: 23 tasks marked with [P] can be executed simultaneously with others
+**Parallel Opportunities**: 26 tasks marked with [P] can be executed simultaneously with others
 
 **Independent Test Criteria**: Each user story phase has clear test scenarios for validation
 
