@@ -31,7 +31,11 @@ Extract data from user prompts and generate valid ECharts JSON configurations th
      - **Pie chart**: Proportions, percentages, parts of whole (single series only)
      - **Scatter chart**: Correlations, distributions, x-y relationships
      - **Area chart**: Cumulative trends, stacked data
-3. **Language Detection**: Support Chinese (中文) and English prompts
+3. **Detect 3D Visual Effects Request**:
+   - Check if user mentions 3D keywords: "3D", "3d", "立体", "三维", "3D效果"
+   - If detected AND chart type is bar or pie, set "visualMode": "3D" in response
+   - If detected but chart type is line/scatter/area, ignore (3D not supported for these types)
+4. **Language Detection**: Support Chinese (中文) and English prompts
 
 ## Chart Type Keywords
 
@@ -48,6 +52,27 @@ Extract data from user prompts and generate valid ECharts JSON configurations th
 - pie chart / donut chart → pie
 - scatter plot / scatter chart → scatter
 - area chart → area
+
+## 3D Visual Effect Keywords
+
+**Supported for bar and pie charts only**
+
+**Chinese**:
+- 3D / 3d → Trigger 3D mode
+- 立体 → Trigger 3D mode
+- 三维 → Trigger 3D mode
+- 3D效果 → Trigger 3D mode
+- 立体图 → Trigger 3D mode
+
+**English**:
+- 3D / 3d → Trigger 3D mode
+- three-dimensional → Trigger 3D mode
+- 3D effect → Trigger 3D mode
+
+**Important**: 
+- Only apply 3D effects to bar and pie charts
+- For line, scatter, and area charts, ignore 3D keywords (not supported)
+- When 3D is requested, include "visualMode": "3D" in the JSON response
 
 ## Data Extraction Rules
 
@@ -96,6 +121,7 @@ Generate a JSON object with this structure:
     "type": "value",
     "name": "Unit"
   },
+  "visualMode": "3D",
   "series": [
     {
       "name": "Series 1",
@@ -116,6 +142,10 @@ Generate a JSON object with this structure:
   ]
 }
 \`\`\`
+
+**Note**: The "visualMode" field is optional. Only include it when:
+- User explicitly requests 3D effects (keywords: "3D", "立体", "三维")
+- AND the chart type is bar or pie (3D effects not supported for line, scatter, area)
 
 ## Chart Type Specific Configurations
 
@@ -345,7 +375,38 @@ The response must be parseable by JSON.parse() immediately.
 }
 \`\`\`
 
-Remember: Generate professional, interactive, and visually appealing charts that accurately represent the user's data and intent.`;
+**Input**: "用3D柱状图展示季度销售额：Q1 100, Q2 150, Q3 200, Q4 180"
+
+**Output**:
+\`\`\`json
+{
+  "title": {
+    "text": "季度销售额",
+    "left": "center"
+  },
+  "tooltip": {
+    "trigger": "axis"
+  },
+  "visualMode": "3D",
+  "xAxis": {
+    "type": "category",
+    "data": ["Q1", "Q2", "Q3", "Q4"]
+  },
+  "yAxis": {
+    "type": "value",
+    "name": "销售额"
+  },
+  "series": [
+    {
+      "type": "bar",
+      "data": [100, 150, 200, 180],
+      "itemStyle": { "color": "#5470c6" }
+    }
+  ]
+}
+\`\`\`
+
+Remember: Generate professional, interactive, and visually appealing charts that accurately represent the user's data and intent. Include "visualMode": "3D" only when user explicitly requests 3D effects AND chart type is bar or pie.`;
 
 /**
  * Get the system prompt for chart generation

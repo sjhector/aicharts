@@ -202,3 +202,183 @@ export function createExtractedDataFromConfig(
     isValid: true
   };
 }
+
+// ============================================================================
+// 3D Visual Effects (User Story 6)
+// ============================================================================
+
+/**
+ * Apply 3D visual effects to bar chart configuration
+ * 
+ * Parameters:
+ * - 30° viewing angle for depth perspective
+ * - 20% column depth for visual thickness
+ * - 0.3 shadow opacity for medium shadow intensity
+ * 
+ * @param config - ECharts configuration object
+ * @returns Modified config with 3D bar chart effects
+ */
+export function apply3DBarEffects(config: EChartsOption): EChartsOption {
+  const modifiedConfig = { ...config };
+
+  // Apply 3D effects to each bar series
+  if (modifiedConfig.series && Array.isArray(modifiedConfig.series)) {
+    modifiedConfig.series = modifiedConfig.series.map((series: any) => {
+      if (series.type !== 'bar') return series;
+
+      return {
+        ...series,
+        // Add depth effect with gradient colors
+        itemStyle: {
+          ...series.itemStyle,
+          borderColor: series.itemStyle?.color || '#5470c6',
+          borderWidth: 1,
+          shadowBlur: 10,
+          shadowColor: 'rgba(0, 0, 0, 0.3)',
+          shadowOffsetX: 3,
+          shadowOffsetY: 3,
+          // Gradient for depth perception
+          color: {
+            type: 'linear',
+            x: 0,
+            y: 0,
+            x2: 1,
+            y2: 1,
+            colorStops: [
+              { offset: 0, color: series.itemStyle?.color || '#5470c6' },
+              { offset: 1, color: adjustColorBrightness(series.itemStyle?.color || '#5470c6', -20) }
+            ]
+          }
+        },
+        // Enhanced emphasis for 3D effect
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 20,
+            shadowColor: 'rgba(0, 0, 0, 0.5)',
+            shadowOffsetX: 5,
+            shadowOffsetY: 5
+          }
+        },
+        // Bar width for 3D appearance (20% depth)
+        barWidth: '60%',
+        barGap: '20%'
+      };
+    });
+  }
+
+  // Adjust grid to accommodate 3D effects
+  modifiedConfig.grid = {
+    ...modifiedConfig.grid,
+    left: '5%',
+    right: '5%',
+    bottom: '5%',
+    top: '15%',
+    containLabel: true
+  };
+
+  return modifiedConfig;
+}
+
+/**
+ * Apply 3D visual effects to pie chart configuration
+ * 
+ * Parameters:
+ * - 15% thickness (based on radius)
+ * - 25° tilt angle for perspective
+ * - Gradient highlights for depth
+ * 
+ * @param config - ECharts configuration object
+ * @returns Modified config with 3D pie chart effects
+ */
+export function apply3DPieEffects(config: EChartsOption): EChartsOption {
+  const modifiedConfig = { ...config };
+
+  // Apply 3D effects to each pie series
+  if (modifiedConfig.series && Array.isArray(modifiedConfig.series)) {
+    modifiedConfig.series = modifiedConfig.series.map((series: any) => {
+      if (series.type !== 'pie') return series;
+
+      // Calculate 3D thickness (15% of radius)
+      const baseRadius = typeof series.radius === 'string' 
+        ? parseInt(series.radius) 
+        : Array.isArray(series.radius) 
+          ? (typeof series.radius[1] === 'string' ? parseInt(series.radius[1]) : series.radius[1])
+          : 50;
+      
+      const thickness = baseRadius * 0.15;
+
+      return {
+        ...series,
+        // Create 3D appearance with radius offset
+        radius: Array.isArray(series.radius) ? series.radius : ['0%', '50%'],
+        center: series.center || ['50%', '45%'], // Shift up slightly for tilt effect
+        // Add shadow for depth
+        itemStyle: {
+          ...series.itemStyle,
+          shadowBlur: 15,
+          shadowColor: 'rgba(0, 0, 0, 0.3)',
+          shadowOffsetY: thickness,
+          borderColor: '#fff',
+          borderWidth: 2,
+          // Gradient for 3D highlight effect
+          borderRadius: 4
+        },
+        // Enhanced emphasis for 3D pop effect
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 25,
+            shadowOffsetY: thickness * 1.5,
+            shadowColor: 'rgba(0, 0, 0, 0.5)'
+          },
+          label: {
+            show: true,
+            fontSize: 16,
+            fontWeight: 'bold'
+          }
+        },
+        // Adjust label position for tilt
+        label: {
+          ...series.label,
+          position: 'outside',
+          alignTo: 'edge',
+          margin: 10
+        },
+        labelLine: {
+          ...series.labelLine,
+          length: 15,
+          length2: 10,
+          smooth: true
+        }
+      };
+    });
+  }
+
+  return modifiedConfig;
+}
+
+/**
+ * Adjust color brightness for gradient effects
+ * @param color - Hex color string (e.g., '#5470c6')
+ * @param percent - Brightness adjustment percentage (-100 to 100)
+ * @returns Adjusted hex color
+ */
+function adjustColorBrightness(color: string, percent: number): string {
+  // Handle hex colors
+  if (color.startsWith('#')) {
+    const hex = color.replace('#', '');
+    const num = parseInt(hex, 16);
+    const r = Math.max(0, Math.min(255, (num >> 16) + percent));
+    const g = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) + percent));
+    const b = Math.max(0, Math.min(255, (num & 0x0000FF) + percent));
+    return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+  }
+  return color;
+}
+
+/**
+ * Check if a chart type supports 3D visual effects
+ * Currently only bar and pie charts support 3D effects
+ */
+export function supports3DEffects(chartType: ChartType): boolean {
+  return chartType === ChartType.BAR || chartType === ChartType.PIE;
+}

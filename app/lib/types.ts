@@ -20,6 +20,28 @@ export enum ChartType {
   AREA = 'area'
 }
 
+/**
+ * Visual mode for chart rendering
+ */
+export type VisualMode = '2D' | '3D';
+
+/**
+ * 3D visual effect parameters for bar and pie charts
+ * Uses pseudo-3D rendering with perspective, shadows, and depth
+ */
+export interface VisualMode3D {
+  /** Visual mode indicator */
+  mode: '3D';
+  /** Viewing angle in degrees (e.g., 30° for bar charts, 25° for pie charts) */
+  viewingAngle: number;
+  /** Depth/thickness as percentage (e.g., 20% for bar columns, 15% for pie thickness) */
+  depth: number;
+  /** Shadow intensity (opacity 0-1, e.g., 0.3 for medium shadow) */
+  shadowIntensity: number;
+  /** Optional tilt angle for pie charts in degrees */
+  tiltAngle?: number;
+}
+
 // ============================================================================
 // Core Data Structures
 // ============================================================================
@@ -77,6 +99,10 @@ export interface ChartConfiguration {
   config: EChartsOption;
   /** Detected or specified chart type */
   chartType: ChartType;
+  /** Visual rendering mode (2D or 3D) */
+  visualMode?: VisualMode;
+  /** 3D visual effect parameters (only when visualMode is '3D') */
+  visualMode3D?: VisualMode3D;
   /** Original extracted data used to generate config */
   extractedData: ExtractedData;
   /** Additional metadata */

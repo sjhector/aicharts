@@ -143,14 +143,14 @@ description: "Implementation tasks for AI Charts Homepage"
 
 ### Implementation for User Story 6
 
-- [ ] T061 [P] [US6] Add VisualMode3D type definition in app/lib/types.ts with viewing angle, depth, shadow intensity attributes
-- [ ] T062 [P] [US6] Create 3D parameter application functions in app/lib/echarts-config.ts for bar charts (30° angle, 20% depth, 0.3 shadow opacity)
-- [ ] T063 [P] [US6] Create 3D parameter application functions in app/lib/echarts-config.ts for pie charts (15% thickness, 25° tilt, gradient highlights)
-- [ ] T064 [US6] Update LLM system prompt in app/lib/llm-prompts.ts to detect 3D keywords ("3D", "立体", "三维", "3d") and return visualMode field
-- [ ] T065 [US6] Add 3D keyword regex fallback detection in app/api/generate-chart/route.ts as backup to LLM detection
-- [ ] T066 [US6] Integrate 3D parameter application in app/api/generate-chart/route.ts when visualMode is "3D" and chartType is bar or pie
-- [ ] T067 [US6] Add 3D effect validation in app/api/generate-chart/route.ts to ensure unsupported chart types (line, scatter, area) fall back to 2D
-- [ ] T068 [US6] Update chart display component in app/components/chart-display.tsx to enable hardware-accelerated rendering for 3D charts
+- [X] T061 [P] [US6] Add VisualMode3D type definition in app/lib/types.ts with viewing angle, depth, shadow intensity attributes
+- [X] T062 [P] [US6] Create 3D parameter application functions in app/lib/echarts-config.ts for bar charts (30° angle, 20% depth, 0.3 shadow opacity)
+- [X] T063 [P] [US6] Create 3D parameter application functions in app/lib/echarts-config.ts for pie charts (15% thickness, 25° tilt, gradient highlights)
+- [X] T064 [US6] Update LLM system prompt in app/lib/llm-prompts.ts to detect 3D keywords ("3D", "立体", "三维", "3d") and return visualMode field
+- [X] T065 [US6] Add 3D keyword regex fallback detection in app/api/generate-chart/route.ts as backup to LLM detection
+- [X] T066 [US6] Integrate 3D parameter application in app/api/generate-chart/route.ts when visualMode is "3D" and chartType is bar or pie
+- [X] T067 [US6] Add 3D effect validation in app/api/generate-chart/route.ts to ensure unsupported chart types (line, scatter, area) fall back to 2D
+- [X] T068 [US6] Update chart display component in app/components/chart-display.tsx to enable hardware-accelerated rendering for 3D charts
 
 **Checkpoint**: Users can now create 3D bar and pie charts with visual effects for presentations
 

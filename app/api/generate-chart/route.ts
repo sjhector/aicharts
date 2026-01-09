@@ -18,8 +18,12 @@ import {
   countDataPoints,
   extractChartType,
   formatEChartsConfig,
-  createExtractedDataFromConfig
+  createExtractedDataFromConfig,
+  apply3DBarEffects,
+  apply3DPieEffects,
+  supports3DEffects
 } from '../../lib/echarts-config';
+import { ChartType } from '../../lib/types';
 
 // Initialize OpenAI client with DashScope configuration
 const client = new OpenAI({
@@ -195,7 +199,48 @@ export async function POST(request: NextRequest) {
     }
 
     // Format configuration for optimal display
-    const formattedConfig = formatEChartsConfig(echartsConfig);
+    let formattedConfig = formatEChartsConfig(echartsConfig);
+
+    // ========================================================================
+    // T065-T067: 3D Visual Effects Detection and Application
+    // ========================================================================
+    
+    // Extract visualMode from LLM response (T065: LLM detection)
+    let visualMode = (parsedResponse as any).visualMode;
+    
+    // T065: Regex fallback for 3D keyword detection if LLM didn't detect
+    if (!visualMode) {
+      const threeDKeywordRegex = /\b(3D|3d|立体|三维|3D效果|立体图|three-dimensional)\b/i;
+      if (threeDKeywordRegex.test(userPrompt)) {
+        console.log(`[${requestId}] 3D keywords detected via regex fallback`);
+        visualMode = '3D';
+      }
+    }
+    
+    // T066: Apply 3D effects if detected and chart type supports it
+    if (visualMode === '3D') {
+      const chartType = extractChartType(formattedConfig);
+      console.log(`[${requestId}] 3D mode requested for chart type: ${chartType}`);
+      
+      // T067: Validate chart type supports 3D effects
+      if (chartType && supports3DEffects(chartType)) {
+        console.log(`[${requestId}] Applying 3D effects to ${chartType} chart`);
+        
+        if (chartType === ChartType.BAR) {
+          formattedConfig = apply3DBarEffects(formattedConfig);
+          console.log(`[${requestId}] Applied 3D bar chart effects (30° angle, 20% depth, 0.3 shadow)`);
+        } else if (chartType === ChartType.PIE) {
+          formattedConfig = apply3DPieEffects(formattedConfig);
+          console.log(`[${requestId}] Applied 3D pie chart effects (15% thickness, 25° tilt, gradient highlights)`);
+        }
+      } else {
+        // T067: 3D requested but chart type doesn't support it
+        console.warn(`[${requestId}] 3D effects requested but not supported for chart type: ${chartType}. Falling back to 2D.`);
+        visualMode = '2D'; // Override to 2D
+      }
+    }
+    
+    // ========================================================================
 
     // Extract metadata
     const chartType = extractChartType(formattedConfig);

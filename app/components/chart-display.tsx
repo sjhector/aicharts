@@ -109,7 +109,10 @@ export function ChartDisplay({
             style={{ height, width: '100%' }}
             opts={{
               renderer: 'canvas',
-              locale: 'ZH'
+              locale: 'ZH',
+              // T068: Enable hardware acceleration for 3D charts
+              devicePixelRatio: window.devicePixelRatio || 2,
+              useDirtyRect: true // Optimize rendering for better performance
             }}
             notMerge={true}
             lazyUpdate={true}
