@@ -1,0 +1,333 @@
+openapi: 3.0.3
+info:
+  title: AI Charts Generation API
+  description: API for generating interactive charts from natural language prompts
+  version: 1.0.0
+  contact:
+    name: AI Charts Team
+
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+  - url: https://aicharts.example.com/api
+    description: Production server
+
+paths:
+  /generate-chart:
+    post:
+      summary: Generate chart from natural language prompt
+      description: |
+        Accepts a natural language prompt containing data and returns a complete
+        ECharts configuration JSON that can be rendered directly in the frontend.
+        
+        The LLM (Qwen3-Max-Preview via DashScope) extracts numerical data, determines
+        the optimal chart type, and formats the output as ECharts configuration.
+        
+        Limitations:
+        - Maximum 1000 data points across all series
+        - Requires extractable numerical data in the prompt
+        - Supports Chinese and English language prompts
+        
+      operationId: generateChart
+      tags:
+        - Charts
+      
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChartGenerationRequest'
+            examples:
+              simple_comparison:
+                summary: Simple sales comparison
+                value:
+                  prompt: "比较北京和上海的销售额: 北京 120、130、150, 上海 100、140、160"
+              
+              explicit_chart_type:
+                summary: Explicit chart type specification
+                value:
+                  prompt: "用柱状图展示2024年每月销售额: 1月 100, 2月 150, 3月 200, 4月 180"
+              
+              multi_series:
+                summary: Multi-series time-series data
+                value:
+                  prompt: "帮我比较一下今年一到六月，北京和上海的月度销售额: 北京是 120、130、150、170、180、200; 上海是 100、140、160、150、190、210"
+      
+      responses:
+        '200':
+          description: Chart configuration generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChartGenerationSuccess'
+              examples:
+                line_chart:
+                  summary: Line chart for time-series comparison
+                  value:
+                    config:
+                      title:
+                        text: "北京 vs 上海月度销售额"
+                        left: "center"
+                      tooltip:
+                        trigger: "axis"
+                      legend:
+                        data: ["北京", "上海"]
+                        top: 30
+                      xAxis:
+                        type: "category"
+                        data: ["1月", "2月", "3月", "4月", "5月", "6月"]
+                      yAxis:
+                        type: "value"
+                        name: "销售额"
+                      series:
+                        - name: "北京"
+                          type: "line"
+                          data: [120, 130, 150, 170, 180, 200]
+                          itemStyle:
+                            color: "#5470c6"
+                        - name: "上海"
+                          type: "line"
+                          data: [100, 140, 160, 150, 190, 210]
+                          itemStyle:
+                            color: "#91cc75"
+                    metadata:
+                      processingTime: 1200
+                      dataPoints: 12
+                      chartType: "line"
+        
+        '400':
+          description: Bad request - validation failed or no data found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChartGenerationError'
+              examples:
+                no_data:
+                  summary: No extractable numerical data
+                  value:
+                    error: "no_data"
+                    message: "No numerical data found in your prompt. Please provide data with numbers and labels."
+                
+                data_limit_exceeded:
+                  summary: Too many data points
+                  value:
+                    error: "validation_failed"
+                    message: "Your data exceeds the 1000 point limit. Please reduce the dataset size."
+                    details: "Total data points: 1523"
+        
+        '429':
+          description: Too many requests - rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChartGenerationError'
+              examples:
+                rate_limit:
+                  summary: Rate limit exceeded
+                  value:
+                    error: "rate_limit"
+                    message: "Too many requests. Please try again in a moment."
+        
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChartGenerationError'
+              examples:
+                server_error:
+                  summary: Generic server error
+                  value:
+                    error: "server_error"
+                    message: "Failed to generate chart. Please try again."
+
+components:
+  schemas:
+    ChartGenerationRequest:
+      type: object
+      required:
+        - prompt
+      properties:
+        prompt:
+          type: string
+          description: Natural language prompt containing data and optional chart type specification
+          minLength: 1
+          maxLength: 10000
+          example: "比较北京和上海的销售额: 北京 120、130、150, 上海 100、140、160"
+        
+        sessionId:
+          type: string
+          description: Optional anonymous session identifier for analytics
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+    
+    ChartGenerationSuccess:
+      type: object
+      required:
+        - config
+        - metadata
+      properties:
+        config:
+          $ref: '#/components/schemas/EChartsConfiguration'
+        
+        metadata:
+          type: object
+          required:
+            - processingTime
+            - dataPoints
+            - chartType
+          properties:
+            processingTime:
+              type: integer
+              description: Time taken to generate chart in milliseconds
+              example: 1200
+            
+            dataPoints:
+              type: integer
+              description: Total number of data points in the chart
+              minimum: 1
+              maximum: 1000
+              example: 12
+            
+            chartType:
+              $ref: '#/components/schemas/ChartType'
+    
+    ChartGenerationError:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          enum:
+            - no_data
+            - validation_failed
+            - rate_limit
+            - server_error
+          description: Machine-readable error category
+        
+        message:
+          type: string
+          description: Human-readable error message for display
+          example: "No numerical data found in your prompt."
+        
+        details:
+          type: string
+          description: Optional technical details for debugging
+          example: "LLM returned: {\"error\": \"no_data\"}"
+    
+    ChartType:
+      type: string
+      enum:
+        - line
+        - bar
+        - pie
+        - scatter
+        - area
+      description: |
+        Chart visualization type:
+        - line: Trends, time-series, continuous data
+        - bar: Comparisons, rankings, categorical data
+        - pie: Composition, proportions (single series only)
+        - scatter: Correlations, distributions
+        - area: Trends with magnitude emphasis
+    
+    EChartsConfiguration:
+      type: object
+      description: Complete ECharts configuration object (subset shown for brevity)
+      required:
+        - series
+      properties:
+        title:
+          type: object
+          properties:
+            text:
+              type: string
+              example: "Sales Comparison"
+            left:
+              type: string
+              enum: [left, center, right]
+              default: center
+        
+        tooltip:
+          type: object
+          properties:
+            trigger:
+              type: string
+              enum: [axis, item]
+              example: "axis"
+        
+        legend:
+          type: object
+          properties:
+            data:
+              type: array
+              items:
+                type: string
+              example: ["Beijing", "Shanghai"]
+        
+        xAxis:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [category, value, time]
+              example: "category"
+            data:
+              type: array
+              items:
+                type: string
+              example: ["Jan", "Feb", "Mar"]
+        
+        yAxis:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [value, category]
+              example: "value"
+            name:
+              type: string
+              example: "Sales"
+        
+        series:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required:
+              - name
+              - type
+              - data
+            properties:
+              name:
+                type: string
+                example: "Beijing"
+              type:
+                $ref: '#/components/schemas/ChartType'
+              data:
+                oneOf:
+                  - type: array
+                    items:
+                      type: number
+                    example: [120, 130, 150]
+                  - type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        value:
+                          type: number
+              itemStyle:
+                type: object
+                properties:
+                  color:
+                    type: string
+                    example: "#5470c6"
+
+tags:
+  - name: Charts
+    description: Chart generation operations
